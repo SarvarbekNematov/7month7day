@@ -4,16 +4,26 @@ import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import SlideshowIcon from '@mui/icons-material/Slideshow';
-import { Autocomplete, TextField } from '@mui/material';
+import { useAxios } from '../hooks/useAxios';
+import { API_KEY } from '../hooks/useEnv';
+import { AutoComplete } from 'antd';
 
 
 export default function Navbar() {
-    const options = [
-        { label: 'The Godfather', id: 1 },
-        { label: 'Pulp Fiction', id: 2 },
-      ];
+    const [options , setOptions] = React.useState([])
+    const navigate = useNavigate()
+
+      const handleSearchMovie = (e) => {
+        useAxios().get(`/search/movie?query=${e}&include_adult=false&api_key=${API_KEY}`).then(res => {
+            setOptions(res.data.results.map(item => ({ value: item.title , id : item.id})));
+            
+        })
+      }
+      const handleChooseMovie = (a , b) => {
+        navigate(`${b.id}`)
+      }
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar className='py-2' position="static" color = "transparent">
@@ -39,12 +49,16 @@ export default function Navbar() {
             <NavLink className={"p-3 rounded-[25px] text-[18px]"} to={"/top-rated"}>Top Rasted</NavLink>
             <NavLink className={"p-3 rounded-[25px] text-[18px]"} to={"/up-comming"}>Up Coming</NavLink>
           </Typography>
-          <Autocomplete
-              disablePortal
-              options={options}
-              sx={{ width: 300 }}
-              renderInput={(params) => <TextField {...params} label="Movie" />}
-            />
+          
+            <AutoComplete
+                size= "large"
+                onSearch={handleSearchMovie}
+                onSelect={handleChooseMovie}
+                allowClear
+                style={{ width: 350 }}
+                options={options}
+                placeholder="Search movie"
+              />
         </Toolbar>
       </AppBar>
     </Box>
